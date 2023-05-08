@@ -59,7 +59,8 @@ export default (parseResult) => {
             // Use the insert layer
             const blockEntities = block.entities.map((be) => {
               const be2 = cloneDeep(be)
-              be2.layer = insert.layer
+              be2.layer = insert.layer,
+                be2.originData = insert;
               // https://github.com/bjnortier/dxf/issues/52
               // See Issue 52. If we don't modify the
               // entity coordinates here it creates an issue with the

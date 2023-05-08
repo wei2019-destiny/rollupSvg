@@ -1,8 +1,8 @@
 <!--
  * @Author: 一只小菜鸡 y1286780926@163.com
  * @Date: 2023-04-14 11:22:43
- * @LastEditors: 一只小菜鸡 y1286780926@163.com
- * @LastEditTime: 2023-04-23 10:51:44
+ * @LastEditors: 13307306924 1286780926@qq.com
+ * @LastEditTime: 2023-05-08 15:29:47
  * @FilePath: \rollupSvg\examples\leafletDemo.html
  * @Description: 
  * 
@@ -93,8 +93,20 @@
       renderLayerCheckBox()
       svgLayer = L.svgOverlay(svgEle, svgElementBounds, { interactive: true, }).addTo(map);
       svgLayer.on('click', (e) => {
-        console.log(e);
+        if (e.originalEvent.srcElement.tagName == 'svg') return
+        var dataset = getSvgelementData(e.originalEvent.srcElement)
+        var targetEntity = helper.parsed.entities.find(A => A.handle == dataset.handle);
+        console.log('dataset: ', dataset);
+        console.log('targetEntity: ', targetEntity,);
       })
+    }
+    function getSvgelementData(element) {
+      if (Object.values(element.dataset).length == 0) {
+        return getSvgelementData(element.parentNode)
+      } else {
+        return element.dataset
+      }
+
     }
     function renderLayerCheckBox() {
       var layers = Object.keys(helper.parsed.tables.layers).map(A => `<label>
@@ -107,11 +119,14 @@
       helper.totalEntities = helper.parsed.entities;
       document.querySelectorAll('.pane .layers input ').forEach(A => {
         A.onchange = (e) => {
-          var values = Object.values(document.querySelectorAll('.pane .layers input[checked]')).filter(A => A.checked).map(A => A.value);
-          helper.parsed.entities = helper.totalEntities.filter(A => values.includes(A.layer))
-          svgLayer.remove();
-          svgLayer._image = new DOMParser().parseFromString(helper.toSVG(), 'text/html').body.childNodes[0];
-          svgLayer.addTo(map);
+          var values = Object.values(document.querySelectorAll('.pane .layers input[checked]')).filter(A => A.checked).map(A => A.value.replaceAll(/\s*/g, ""));
+          var nodes = Array.from(svgLayer._image.children[0].children);
+          nodes.filter(A => !values.includes(A.dataset.layer)).forEach(A => A.style.display = "none");
+          nodes.filter(A => values.includes(A.dataset.layer)).forEach(A => A.style.display = "");
+          // helper.parsed.entities = helper.totalEntities.filter(A => values.includes(A.layer))
+          // svgLayer.remove();
+          // svgLayer._image = new DOMParser().parseFromString(helper.toSVG(), 'text/html').body.childNodes[0];
+          // svgLayer.addTo(map);
         }
       })
     }
