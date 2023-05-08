@@ -1,0 +1,76 @@
+<!--
+ * @Author: 一只小菜鸡 y1286780926@163.com
+ * @Date: 2023-04-18 15:13:56
+ * @LastEditors: 一只小菜鸡 y1286780926@163.com
+ * @LastEditTime: 2023-04-21 11:50:26
+ * @FilePath: \svgdemo\examples\dxf.html
+ * @Description: 
+ * 
+ * Copyright (c) 2023 by bigemap/${git_name_email}, All Rights Reserved. 
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>DXF Browser Example</title>
+  <style>
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .pane {
+      position: absolute;
+      top: 10px;
+      left: 60px;
+      border-radius: 5px;
+      background-color: aliceblue;
+      z-index: 500;
+    }
+  </style>
+  <link href='http://www.bigemap.com:9000/bigemap.js/v2.1.0/bigemap.css' rel='stylesheet' />
+  <script src='http://www.bigemap.com:9000/bigemap.js/v2.1.0/bigemap.js'></script>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div class="pane">
+    <input type="file" id="file" />
+    <div>Number of entities:<span id="numberOfEntities">-</span></div>
+  </div>
+  <div id="svg"></div>
+  <!-- <script src="../dist/dxf.js"></script> -->
+  <script type="module">
+    import * as svg from '../src/index.js';
+    BM.Config.HTTP_URL = 'http://www.bigemap.com:9000';
+    var map = BM.map('map', 'bigemap.zhongkexingtu', { center: [0, 0], zoom: 2, zoomControl: true, attributionControl: false });
+    var numberOfEntities = document.getElementById('numberOfEntities')
+    var svgContainer = document.getElementById('svg')
+    var fileInput = document.getElementById('file');
+    var helper;
+    dxf.config.verbose = false;
+    fileInput.addEventListener('change', function (event) {
+      var file = event.target.files[0]
+      var reader = new FileReader()
+      numberOfEntities.innerHTML = 'reading...'
+      reader.onload = function (e) {
+        if (e.target.readyState === 2) {
+          var dxfContents = e.target.result
+          helper = new dxf.Helper(dxfContents)
+          numberOfEntities.innerHTML = helper.denormalised.length
+          const svg = helper.toSVG()
+          debugger
+          svgContainer.innerHTML = svg
+        }
+      }
+      reader.readAsBinaryString(file)
+    })
+  </script>
+
+</body>
+
+</html>

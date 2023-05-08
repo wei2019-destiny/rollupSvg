@@ -1,0 +1,121 @@
+<!--
+ * @Author: 一只小菜鸡 y1286780926@163.com
+ * @Date: 2023-04-14 11:22:43
+ * @LastEditors: 一只小菜鸡 y1286780926@163.com
+ * @LastEditTime: 2023-04-23 10:51:44
+ * @FilePath: \rollupSvg\examples\leafletDemo.html
+ * @Description: 
+ * 
+ * Copyright (c) 2023 by bigemap/${git_name_email}, All Rights Reserved. 
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Leaflet.DistortableImage Example</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@latest/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+  <script src="../dist/dxf.js"></script>
+  <style>
+    body,
+    #map {
+      height: 100vh;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .pane {
+      position: absolute;
+      top: 10px;
+      left: 60px;
+      border-radius: 5px;
+      z-index: 500;
+      background-color: aliceblue;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div class="pane">
+    <input type="file" id="file" />
+    <div>Number of entities:<span id="numberOfEntities">-</span></div>
+    <div class="layers"> </div>
+  </div>
+  <script>
+    let map = L.map('map').setView([46.52, 126.1803155847], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+    var fileInput = document.getElementById('file');
+    var helper;
+    dxf.config.verbose = false;
+    // fileInput.addEventListener('change', function (event) {
+    //   var file = event.target.files[0]
+    //   var reader = new FileReader()
+    //   debugger
+    //   numberOfEntities.innerHTML = 'reading...'
+    //   reader.onload = function (e) {
+    //     if (e.target.readyState === 2) {
+    //       var dxfContents = e.target.result
+    //       renderDxf(dxfContents);
+    //     }
+    //   }
+    //   reader.readAsBinaryString(file)
+    // })
+    fetch('./demo.dxf').then(rep => rep.text()).then(
+      res => {
+        var reader = new FileReader()
+        numberOfEntities.innerHTML = 'reading...'
+        reader.onload = function (e) {
+          if (e.target.readyState === 2) {
+            var dxfContents = e.target.result
+            renderDxf(dxfContents);
+          }
+        }
+
+        reader.readAsText(new Blob([res]))
+      }
+    )
+    let svgLayer;
+    function renderDxf(dxfContents) {
+      helper = new dxf.Helper(dxfContents)
+      numberOfEntities.innerHTML = helper.denormalised.length
+      const svg = helper.toSVG();
+      const svgEle = new DOMParser().parseFromString(svg, 'text/html').body.childNodes[0];
+      var svgElementBounds = map.getBounds();
+      renderLayerCheckBox()
+      svgLayer = L.svgOverlay(svgEle, svgElementBounds, { interactive: true, }).addTo(map);
+      svgLayer.on('click', (e) => {
+        console.log(e);
+      })
+    }
+    function renderLayerCheckBox() {
+      var layers = Object.keys(helper.parsed.tables.layers).map(A => `<label>
+              <input type="checkbox" value="${A}" checked><span>${A}</span>
+            </label >`).join('');
+      document.querySelector('.pane .layers').innerHTML = layers;
+      ListenLayerChange()
+    }
+    function ListenLayerChange() {
+      helper.totalEntities = helper.parsed.entities;
+      document.querySelectorAll('.pane .layers input ').forEach(A => {
+        A.onchange = (e) => {
+          var values = Object.values(document.querySelectorAll('.pane .layers input[checked]')).filter(A => A.checked).map(A => A.value);
+          helper.parsed.entities = helper.totalEntities.filter(A => values.includes(A.layer))
+          svgLayer.remove();
+          svgLayer._image = new DOMParser().parseFromString(helper.toSVG(), 'text/html').body.childNodes[0];
+          svgLayer.addTo(map);
+        }
+      })
+    }
+  </script>
+</body>
+
+</html>
