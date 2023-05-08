@@ -2,7 +2,7 @@
  * @Author: 一只小菜鸡 y1286780926@163.com
  * @Date: 2023-04-14 11:22:43
  * @LastEditors: 13307306924 1286780926@qq.com
- * @LastEditTime: 2023-05-08 15:29:47
+ * @LastEditTime: 2023-05-08 17:38:36
  * @FilePath: \rollupSvg\examples\leafletDemo.html
  * @Description: 
  * 
@@ -56,19 +56,6 @@
     var fileInput = document.getElementById('file');
     var helper;
     dxf.config.verbose = false;
-    // fileInput.addEventListener('change', function (event) {
-    //   var file = event.target.files[0]
-    //   var reader = new FileReader()
-    //   debugger
-    //   numberOfEntities.innerHTML = 'reading...'
-    //   reader.onload = function (e) {
-    //     if (e.target.readyState === 2) {
-    //       var dxfContents = e.target.result
-    //       renderDxf(dxfContents);
-    //     }
-    //   }
-    //   reader.readAsBinaryString(file)
-    // })
     fetch('./demo.dxf').then(rep => rep.text()).then(
       res => {
         var reader = new FileReader()
@@ -79,7 +66,6 @@
             renderDxf(dxfContents);
           }
         }
-
         reader.readAsText(new Blob([res]))
       }
     )
@@ -106,7 +92,6 @@
       } else {
         return element.dataset
       }
-
     }
     function renderLayerCheckBox() {
       var layers = Object.keys(helper.parsed.tables.layers).map(A => `<label>
